@@ -2,7 +2,7 @@ import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import {
   csvCell, handleExport, handleSubscribe, normalizeEmail, originAllowed,
-  redisSink, sheetsSink, sinksFromEnv, toCsv,
+  redisSink, sheetsSink, sinksFromEnv, siteUrl, toCsv,
 } from '../lib/subscribe-core.js';
 
 const memorySink = () => {
@@ -132,4 +132,12 @@ test('export requires the token', async () => {
   const ok = await handleExport('right', { EXPORT_TOKEN: 'right' }, { sink });
   assert.equal(ok.status, 200);
   assert.match(ok.body, /a@b\.co/);
+});
+
+test('siteUrl builds the site address for the welcome email', () => {
+  assert.equal(siteUrl('presentation-craft.vercel.app'), 'https://presentation-craft.vercel.app');
+  assert.equal(siteUrl('Example.com'), 'https://example.com');
+  assert.equal(siteUrl('localhost:3000'), 'http://localhost:3000');
+  assert.equal(siteUrl(''), '');
+  assert.equal(siteUrl('evil.com/<script>'), '');
 });

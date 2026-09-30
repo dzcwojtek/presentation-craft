@@ -20,7 +20,7 @@
 
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Geist+Mono:wght@400;700&family=Inter:wght@400;500;700&display=swap">
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:ital,wght@0,400;0,500;0,700;1,400&display=swap">
   <link rel="preload" href="/assets/fonts/CooperLtBT-Light.woff2" as="font" type="font/woff2" crossorigin>
   <link rel="stylesheet" href="/assets/css/styles.css">
 
@@ -103,9 +103,9 @@
           </p>
         </div>
 
-        <p class="lede" data-enter>This is a working library of small interactive lessons on how to build decks people actually want to watch, and not just put on the side while doom-scrolling… well it's still a work in progress.</p>
+        <p class="lede" data-enter>This is a working library of small interactive lessons (snippets) on how to build decks people actually want to watch, and not just put on the side while doom-scrolling. It's still in the works, though, so sign up for updates on when we launch!</p>
 
-        <p class="lede lede--second" data-enter>This is a working library of small interactive lessons on how to build decks people actually want to watch, and not just put on the side while doom-scrolling… well it's still a work in progress. (2nd text)</p>
+        <p class="lede lede--second" data-enter>My name is Wojtek and I'm a designer with 8+ years of design experience. Over the years, I've given many talks around the world – some public, some small-scale, but all driven by narrative and supported by strong visuals. Want proof? <a class="lede__link" href="https://www.youtube.com/watch?v=8B5JbsnauLg" target="_blank" rel="noopener">See my talk <em>on making talks</em></a>!</p>
 
         <form class="signup" id="signup" action="/api/subscribe" method="post" novalidate>
           <label class="signup__label" for="email" data-enter data-blur>
@@ -207,8 +207,9 @@
         <div class="lesson__body" id="lessonBody"></div>
       </div>
     </article>
-    <!-- pinned to the top-left corner of the page while a lesson is open -->
-    <div class="lesson__tag" role="note">This part is still just a proof-of-concept… stay tuned for the actual content!</div>
+    <!-- Beta note while a lesson is open: top-left corner on desktop, a strip under the nav on phones.
+         "Sign up for updates" works exactly like the Sign up button. -->
+    <div class="lesson__tag" role="note"><span class="lesson__beta">Beta</span> – This part isn’t working yet. In the final version, you’ll be able to scroll and see how the slide is built in real time while reading. <a class="lesson__tag-link" href="#email" data-signup>Sign up for updates</a>!</div>
   </dialog>
 </body>
 </html>

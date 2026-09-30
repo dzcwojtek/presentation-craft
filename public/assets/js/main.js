@@ -316,7 +316,10 @@ function layout() {
     card.style.width = `${k.w}px`;
     card.style.height = `${k.h}px`;
     card.style.transform = `translate3d(${k.x.toFixed(2)}px, ${k.y.toFixed(2)}px, 0) rotate(${k.rot}deg) rotateY(${k.ry.toFixed(2)}deg) scale(${k.s.toFixed(4)}, ${(k.sy ?? k.s).toFixed(4)})`;
-    card.style.opacity = String(+(k.o * appear).toFixed(3));
+    // never quite 1: Safari 26 on iPhone clips fully opaque layers in fixed
+    // elements at the top of its floating toolbar (and paints a black strip
+    // below); at 0.999 they're composited normally and run under the toolbar
+    card.style.opacity = String(Math.min(0.999, +(k.o * appear).toFixed(3)));
     card.style.zIndex = String(k.z);
     card.style.setProperty('--lift', `${k.lift.toFixed(1)}px`);
 
@@ -812,29 +815,55 @@ let splitWidth = 0;
 
 // Splits an element's text into its rendered lines (<span class="split-line">),
 // keeping inline elements (like .inline-logo) and the original spacing.
+// Words inside inline elements (a link, <em>) are split too, and each line
+// gets its own copy of those elements, so a link that wraps onto the next
+// line stays a link (and keeps its styling) on both lines. Empty elements
+// (like .inline-logo) move as one piece.
 function splitLines(el) {
   if (el.dataset.src === undefined) el.dataset.src = el.innerHTML;
   el.innerHTML = el.dataset.src;
-  const units = [];
+  const units = []; // { node, path: inline elements it sits in, space: a space before it }
   let space = false;
-  for (const child of [...el.childNodes]) {
-    if (child.nodeType === Node.TEXT_NODE) {
-      for (const part of child.data.split(/(\s+)/)) {
-        if (!part) continue;
-        if (/^\s+$/.test(part)) { space = true; continue; }
-        const word = document.createElement('span');
-        word.textContent = part;
-        units.push({ node: word, space: space && units.length > 0 });
-        space = false;
+  const walk = (parent, path) => {
+    for (const child of [...parent.childNodes]) {
+      if (child.nodeType === Node.TEXT_NODE) {
+        for (const part of child.data.split(/(\s+)/)) {
+          if (!part) continue;
+          if (/^\s+$/.test(part)) { space = true; continue; }
+          const word = document.createElement('span');
+          word.textContent = part;
+          units.push({ node: word, path, space: space && units.length > 0 });
+          space = false;
+        }
+      } else if (child.nodeType === Node.ELEMENT_NODE) {
+        if (child.childNodes.length && !child.classList.contains('inline-logo')) walk(child, [...path, child]);
+        else { units.push({ node: child, path, space: space && units.length > 0 }); space = false; }
       }
-    } else if (child.nodeType === Node.ELEMENT_NODE) {
-      units.push({ node: child, space: space && units.length > 0 });
-      space = false;
     }
-  }
-  el.textContent = '';
-  units.forEach((u) => { if (u.space) el.append(' '); el.append(u.node); });
+  };
+  walk(el, []);
 
+  // puts units into `target`, re-creating the inline elements they sit in
+  // (one copy per run of consecutive words, spaces inside when both sides are)
+  const build = (target, list) => {
+    let chain = []; // open copies: [{ orig, copy }]
+    list.forEach((u, k) => {
+      let n = 0;
+      while (n < chain.length && n < u.path.length && chain[n].orig === u.path[n]) n += 1;
+      chain = chain.slice(0, n);
+      const top = () => (chain.length ? chain[chain.length - 1].copy : target);
+      if (u.space && k > 0) top().append(' ');
+      for (let i = n; i < u.path.length; i++) {
+        const copy = u.path[i].cloneNode(false);
+        top().append(copy);
+        chain.push({ orig: u.path[i], copy });
+      }
+      top().append(u.node);
+    });
+  };
+
+  el.textContent = '';
+  build(el, units);
   const lines = [];
   let lineMid = null;
   for (const u of units) {
@@ -847,7 +876,7 @@ function splitLines(el) {
   lines.forEach((line, i) => {
     const span = document.createElement('span');
     span.className = 'split-line';
-    line.forEach((u, k) => { if (u.space && k > 0) span.append(' '); span.append(u.node); });
+    build(span, line);
     el.append(span);
     if (i < lines.length - 1) el.append(' '); // keeps copy/paste + screen readers right
   });
@@ -1285,6 +1314,7 @@ function openLesson(i) {
   updateRunning();
   root.classList.add('is-locked');
   els.dialog.showModal();
+  sizeLessonTag();
   els.scroll.scrollTop = 0;
   (isSheet() ? els.grabber : els.close).focus({ preventScroll: true });
   prepareSheetBlur();
@@ -1485,7 +1515,12 @@ els.play.addEventListener('click', () => {
   if (suppressSheetClick) return;
   runPreview();
 });
-window.addEventListener('resize', () => { if (S.dialog) { prepareSheetBlur(); updateLessonFocus(); } });
+// Phones: the sheet starts just below the Beta note (its height varies with the width).
+const lessonTag = els.dialog.querySelector('.lesson__tag');
+function sizeLessonTag() {
+  if (lessonTag) els.dialog.style.setProperty('--tag-h', `${Math.ceil(lessonTag.offsetHeight)}px`);
+}
+window.addEventListener('resize', () => { if (S.dialog) { sizeLessonTag(); prepareSheetBlur(); updateLessonFocus(); } });
 
 /* ---------- sign up ---------- */
 const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/;

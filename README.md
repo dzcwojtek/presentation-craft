@@ -82,12 +82,14 @@ tests/                    ← `npm test`
      - **Focus:** the section crossing a line just below the preview lights up, and the others are dimmed.
      - **Preview:** it transforms into that section's state, and scrolling back up reverses it. For example, the bullet points light up one by one while a line is drawn through them, "one" wins over "Say … thing", and the follow-ups appear under the key idea.
      - **Play button:** it runs through all the states, then returns to the section in focus.
-     - **Proof-of-concept tag:** while a lesson is open, a yellow tag in the top-left corner of the page reads "This part is still just a proof-of-concept… stay tuned for the actual content!" (`.lesson__tag` in `index.html`). On phones it takes the nav logo's spot, clear of Sign up. On desktop the dialog starts below a nav-height band, so the tag never overlaps it.
+     - **Beta note:** while a lesson is open, a yellow note reads "Beta – This part isn't working yet. In the final version, you'll be able to scroll and see how the slide is built in real time while reading. Sign up for updates!" (`.lesson__tag` in `index.html`). "Beta" is a white-on-black badge with 4px corners. "Sign up for updates" works exactly like the Sign up button: it closes the lesson and the cards, then takes you to the email field. On desktop the note sits in the top-left corner, in a nav-height band the dialog leaves free. On phones it's a strip under the nav bar, and the sheet starts just below it.
      - **Settings and text:** tune the focus line and play speed with `LESSON_FOCUS` in `main.js`, and the states in `styles.css` (`.slide.s1` … `.s4`). The section text is Lorem Ipsum placeholder copy (`LOREM` in `lessons.js`).
    - scroll back up to return to the pile
    - the caption under each card uses the entry animation (fade, 12px rise, blur 12→0) when the viewer opens and on every card change; the outgoing caption fades and blurs out first
 
 Reduced-motion users get instant transitions and no autoplay.
+
+**Safari 26 on iPhone:** Safari clips fully opaque layers inside fixed elements at the top of its floating toolbar, then paints a black strip below. That used to cut off the card pile. The cards, the bottom glow and the phone lesson sheet are therefore kept at opacity 0.999 (it looks identical), so they run under the toolbar like the rest of the page.
 
 ## Run it locally
 
@@ -127,6 +129,24 @@ Set **one or both** of these. If both are set, every signup goes to both.
 
 Signups show up in a **Subscribers** tab with the timestamp, email, source, country, referrer and user agent. Duplicates are skipped.
 
+### Welcome email (with the Google Sheet)
+
+Every new signup gets a thank-you email styled like the site. Repeat signups don't get another one. It has a black background, the logo and wordmark, the open letterbox, "Thanks for signing up!", a note to expect updates, and a button to the talk.
+
+- **How it's sent:** the Apps Script sends it through your Gmail (`MailApp`), from your address, with "Presentation Craft" as the sender name. Replies come to you.
+- **Images:** they load from your live site. The site sends its own address along with each signup (`site`), so there's nothing to configure.
+- **Settings:** change the subject or sender name, or switch the email off, in `WELCOME` at the top of `Code.gs`. The wording is in `welcomeEmail_()`.
+
+**Switching it on:**
+
+1. Paste the updated `Code.gs` into your Apps Script and save.
+2. In the function menu above the code, pick **testWelcomeEmail** and click **Run**. Google asks for permission to send email as you; allow it. You'll get a test copy.
+   - For the test copy to show images, add a script property `SITE_URL` = `https://www.presentationcraft.com`.
+3. Go to **Deploy → Manage deployments**, click the pencil icon, choose **Version: New version**, and click **Deploy**. The URL stays the same.
+4. Redeploy the site, so it sends its address along with each signup.
+
+Free Gmail accounts can send about 100 emails a day. If sending ever fails, the signup is still saved.
+
 ### Option B: Vercel storage (Upstash Redis)
 
 1. In Vercel, open **Storage → Create → Upstash for Redis** (free tier) and connect it to the project. Vercel adds `KV_REST_API_URL` and `KV_REST_API_TOKEN` for you.
@@ -153,14 +173,14 @@ Bots get a fake "ok" and nothing is stored.
 
 ## Editing content
 
-- **Header text**: `public/index.html`. The second paragraph is still the Figma placeholder ("(2nd text)").
+- **Header text**: `public/index.html`, from Figma 140:128. "See my talk *on making talks*" links to the talk on YouTube, opening in a new tab. It has a dotted underline, and "on making talks" is in italics (Inter Italic is loaded for it). You can use links and `<em>` in the header paragraphs: the line-by-line blur splits them word by word, and a link that wraps onto the next line stays a link.
 - **Cards, captions and modal text**: `public/assets/js/lessons.js`. All three lessons use the Figma section titles with Lorem Ipsum placeholder text. For inline logos in the text, use `<span class="inline-logo">` (a grey square) and swap it for an `<img>` tag.
 - **Card positions in the pile**: the `PEEK` values in `lessons.js`. The mobile numbers come straight from Figma.
 - **Time per story**: `STORY_MS` in `lessons.js`.
 
 ## Fonts
 
-- **Inter** and **Geist Mono** load from Google Fonts.
+- **Inter** loads from Google Fonts. The lesson text uses it too, on desktop as well as phones.
 - **Cooper Lt BT Light** (the serif) is self-hosted from `public/assets/fonts/CooperLtBT-Light.woff2`, converted from the TTF you supplied. It's a commercial Bitstream font, so make sure your licence covers web use before the site goes public.
 
 Under GDPR, you may prefer to self-host the Google fonts: download them from [google-webfonts-helper](https://gwfh.mranftl.com/fonts) into `public/assets/fonts/` and swap out the `<link>` tag.
