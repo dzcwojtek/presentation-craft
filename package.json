@@ -1,0 +1,14 @@
+{
+  "name": "presentation-craft",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "description": "Presentation Craft — landing page with lessons viewer and email signup",
+  "scripts": {
+    "dev": "node scripts/dev.mjs",
+    "test": "node --test"
+  },
+  "engines": {
+    "node": ">=18"
+  }
+}

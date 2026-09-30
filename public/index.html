@@ -1,0 +1,212 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <title>Presentation Craft</title>
+  <meta name="description" content="A working library of small interactive lessons on how to build decks people actually want to watch.">
+  <meta name="theme-color" content="#000000">
+  <meta name="color-scheme" content="dark">
+
+  <!-- Social cards. Replace https://example.com with your domain once it's live. -->
+  <meta property="og:type" content="website">
+  <meta property="og:title" content="Presentation Craft">
+  <meta property="og:description" content="Small interactive lessons on how to build decks people actually want to watch.">
+  <meta property="og:image" content="https://example.com/assets/img/og.png">
+  <meta name="twitter:card" content="summary_large_image">
+
+  <link rel="icon" type="image/png" href="/favicon.png">
+  <link rel="apple-touch-icon" href="/apple-touch-icon.png">
+
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Geist+Mono:wght@400;700&family=Inter:wght@400;500;700&display=swap">
+  <link rel="preload" href="/assets/fonts/CooperLtBT-Light.woff2" as="font" type="font/woff2" crossorigin>
+  <link rel="stylesheet" href="/assets/css/styles.css">
+
+  <link rel="preload" as="image" href="/assets/img/logo-still.png">
+  <script src="/assets/js/boot.js"></script>
+  <script type="module" src="/assets/js/main.js"></script>
+</head>
+<body>
+  <a class="skip-link" href="#email">Skip to sign up</a>
+
+  <!-- Navigation bar (64px, top of the page). Only the logo lives here; the
+       Sign up button is the header's own button, which docks into this bar. -->
+  <header class="nav" id="nav">
+    <div class="nav__inner" id="navInner">
+      <a class="brand" href="#top" aria-label="Presentation Craft — back to top">
+        <img class="brand__mark" id="brandMark" src="/assets/img/logo-still.png" width="70" height="39" alt="">
+        <span class="brand__type" aria-hidden="true">
+          <img class="brand__line brand__line--1" src="/assets/img/wordmark-presentation.png" width="84" height="12" alt="">
+          <img class="brand__line brand__line--2" src="/assets/img/wordmark-craft.png" width="33" height="12" alt="">
+        </span>
+      </a>
+    </div>
+  </header>
+  <div class="nav-scrim" aria-hidden="true"></div>
+
+  <main id="top">
+    <section class="hero hero--intro" id="hero" aria-label="Introduction">
+      <div class="hero__inner">
+        <h1 class="hero__logo" id="heroLogo" data-blur>
+          <!-- Intro: the hands video plays in exactly the logo's box, then
+               crossfades into the logo. The logo itself has no entry animation.
+               The logo is a looping clip; its poster is its first frame, which
+               shows until main.js starts the loop (after the crossfade). If a
+               browser won't play it, main.js swaps in logo-anim.webp (same loop). -->
+          <span class="hero__markbox">
+            <video class="hero__mark" id="logoVideo" muted loop playsinline preload="none"
+                   poster="/assets/img/logo-still.png"
+                   disablepictureinpicture disableremoteplayback aria-hidden="true"
+                   width="163" height="91">
+              <source src="/assets/video/logo.webm" type="video/webm">
+              <source src="/assets/video/logo.mp4" type="video/mp4">
+            </video>
+            <!-- Starts downloading straight away; stays invisible until it's fully
+                 loaded and playing (main.js), then fades in. If a browser won't
+                 play it, main.js swaps in intro-anim.webp (same clip). -->
+            <video class="hero__intro-video" id="introVideo" muted playsinline preload="auto"
+                   disablepictureinpicture disableremoteplayback aria-hidden="true"
+                   width="163" height="91">
+              <source src="/assets/video/intro.webm" type="video/webm">
+              <source src="/assets/video/intro.mp4" type="video/mp4">
+            </video>
+          </span>
+          <img class="hero__type" data-enter src="/assets/img/wordmark.png" width="164" height="16" alt="Presentation Craft">
+        </h1>
+        <p class="hero__intro-text" id="introText" aria-hidden="true"><span>Collaboration</span><span>starts with</span><span>communication</span></p>
+      </div>
+    </section>
+
+    <!-- The one Sign up button: sits beside "Hello!", scrolls with the page,
+         then sticks in the nav bar (position: sticky) for the rest of the page. -->
+    <div class="cta-rail" id="ctaRail">
+      <div class="cta-rail__inner">
+        <a class="pill cta" id="cta" href="#email" data-signup data-enter>Sign up</a>
+      </div>
+    </div>
+
+    <section class="hero hero--body">
+      <div class="hero__inner">
+        <div class="hello" id="hello" data-blur>
+          <p class="hello__text" data-enter>
+            <!-- The SVG has room around the hand for the wave; this slot is
+                 sized to the hand so it sits right next to "Hello!". -->
+            <span class="hello__wave" aria-hidden="true">
+              <picture>
+                <source srcset="/assets/img/wave-static.svg" media="(prefers-reduced-motion: reduce)">
+                <img src="/assets/img/wave.svg" width="54" height="54" alt="">
+              </picture>
+            </span>
+            <span>Hello!</span>
+          </p>
+        </div>
+
+        <p class="lede" data-enter>This is a working library of small interactive lessons on how to build decks people actually want to watch, and not just put on the side while doom-scrolling… well it's still a work in progress.</p>
+
+        <p class="lede lede--second" data-enter>This is a working library of small interactive lessons on how to build decks people actually want to watch, and not just put on the side while doom-scrolling… well it's still a work in progress. (2nd text)</p>
+
+        <form class="signup" id="signup" action="/api/subscribe" method="post" novalidate>
+          <label class="signup__label" for="email" data-enter data-blur>
+            <span class="signup__hint">Get notified with updates</span>
+            <span class="signup__msg" id="signupMsg" role="status" aria-live="polite"></span>
+            <!-- Animated letterbox (Letterbox.webm): rests on its first frame (the
+                 poster), plays once when a signup goes through. main.js sets the
+                 source; browsers that can't show a WebM's transparency (Safari)
+                 get the same frames as a sprite instead. -->
+            <span class="mailbox" id="mailbox" aria-hidden="true">
+              <video class="mailbox__video" id="mailboxVideo" muted playsinline preload="none"
+                     poster="/assets/img/letterbox-first.webp" width="168" height="174"
+                     disablepictureinpicture disableremoteplayback></video>
+              <span class="mailbox__sprite"></span>
+            </span>
+          </label>
+          <div class="signup__field" data-enter data-blur>
+            <input class="signup__input" id="email" name="email" type="email" inputmode="email"
+                   autocomplete="email" autocapitalize="off" spellcheck="false" required
+                   placeholder="Your email address" aria-describedby="signupMsg">
+            <button class="signup__submit" type="submit" aria-label="Subscribe">
+              <img src="/assets/img/arrow-button.svg" width="32" height="32" alt="">
+            </button>
+          </div>
+          <!-- Honeypot: real people never see or fill this -->
+          <div class="hp" aria-hidden="true">
+            <label>Company <input type="text" name="company" tabindex="-1" autocomplete="off"></label>
+          </div>
+          <input type="hidden" name="source" value="hero">
+        </form>
+      </div>
+    </section>
+
+    <!-- Scroll room for the stories state. The stage itself is fixed (below). -->
+    <section class="stories-spacer" id="lessons" aria-hidden="true"></section>
+  </main>
+
+  <!-- Viewport effects for the header: fade on the bottom 30% (the blur is applied per line by main.js) -->
+  <div class="fx-fade" aria-hidden="true"></div>
+  <!-- Animated glow at the bottom of the header. main.js picks the source:
+       WebM with transparency (Chrome, Firefox, Edge) or an MP4 flattened onto
+       black and screen-blended (Safari / iOS). The poster shows until it plays. -->
+  <div class="fx-glow" id="glow" aria-hidden="true">
+    <video class="fx-glow__video" id="glowVideo" muted loop playsinline preload="auto"
+           disableremoteplayback poster="/assets/video/bottom-glow-poster.webp"
+           width="778" height="578"></video>
+  </div>
+
+  <!-- Pull hint above the card pile: appears (entry animation) once the email
+       field is on screen, brightens 50% → 100% as you pull towards the cards. -->
+  <!-- Phones: a label for the pull. Desktop: "See examples below", a button
+       that opens the cards (main.js makes it inert whenever it isn't usable). -->
+  <div class="pull-hint" id="pullHint">
+    <button class="pull-hint__btn" id="pullHintBtn" type="button" inert>
+      <span class="pull-hint__touch">Swipe down for examples</span>
+      <span class="pull-hint__desk">See examples below</span>
+    </button>
+  </div>
+
+  <!-- Lessons: fixed card deck that morphs from the peeking pile into a stories viewer -->
+  <section class="stage" id="stage" aria-label="Lessons" aria-roledescription="carousel">
+    <div class="stage__progress" id="progress" aria-hidden="true"></div>
+    <div class="deck" id="deck"></div>
+    <p class="stage__caption" id="caption" aria-live="polite"><span></span></p>
+    <button class="stage__arrow stage__arrow--prev" id="prevBtn" type="button" aria-label="Previous lesson">
+      <svg width="16" height="16" viewBox="0 0 16 16" aria-hidden="true"><path d="M10 3 5 8l5 5" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg>
+    </button>
+    <button class="stage__arrow stage__arrow--next" id="nextBtn" type="button" aria-label="Next lesson">
+      <svg width="16" height="16" viewBox="0 0 16 16" aria-hidden="true"><path d="m6 3 5 5-5 5" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg>
+    </button>
+  </section>
+  <!-- Desktop: closes the cards view (top-right corner, in line with the nav bar) -->
+  <button class="stories-close" id="storiesClose" type="button" aria-label="Close examples" inert>
+    <svg width="16" height="16" viewBox="0 0 16 16" aria-hidden="true"><path d="m4 4 8 8M12 4l-8 8" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/></svg>
+  </button>
+
+  <!-- Lesson detail -->
+  <dialog class="lesson" id="lesson" aria-labelledby="lessonTitle">
+    <!-- Mobile: a bottom sheet (drag the handle down, or tap it, to close).
+         Desktop: a centred dialog. -->
+    <div class="lesson__scrim" id="lessonScrim" aria-hidden="true"></div>
+    <article class="lesson__panel" id="lessonPanel">
+      <div class="lesson__scroll" id="lessonScroll">
+        <div class="lesson__head" id="lessonHead">
+          <button class="lesson__grabber" id="lessonGrabber" type="button" aria-label="Close lesson"></button>
+          <div class="lesson__preview">
+            <div class="slide" id="lessonSlide"></div>
+            <button class="round-btn lesson__play" id="lessonPlay" type="button" aria-label="Play preview">
+              <img src="/assets/img/play-fill.svg" width="20" height="20" alt="">
+            </button>
+            <button class="round-btn lesson__close" id="lessonClose" type="button" aria-label="Close lesson">
+              <svg width="20" height="20" viewBox="0 0 20 20" aria-hidden="true"><path d="M5.5 5.5l9 9m0-9l-9 9" stroke="#141413" stroke-width="1.8" stroke-linecap="round"/></svg>
+            </button>
+          </div>
+        </div>
+        <h2 class="visually-hidden" id="lessonTitle"></h2>
+        <div class="lesson__body" id="lessonBody"></div>
+      </div>
+    </article>
+    <!-- pinned to the top-left corner of the page while a lesson is open -->
+    <div class="lesson__tag" role="note">This part is still just a proof-of-concept… stay tuned for the actual content!</div>
+  </dialog>
+</body>
+</html>

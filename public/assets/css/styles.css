@@ -1,0 +1,1236 @@
+/* ==========================================================================
+   Presentation Craft — styles
+   Mobile-first from the Figma frames (393 × 852). Desktop starts at 900px.
+   ========================================================================== */
+
+/* Display serif: Cooper Lt BT Light (from the Figma file), self-hosted.
+   Note: Bitstream fonts need a web licence for use on a public site. */
+@font-face {
+  font-family: "Cooper Lt BT";
+  src: url("/assets/fonts/CooperLtBT-Light.woff2") format("woff2");
+  font-weight: 400;
+  font-style: normal;
+  font-display: swap;
+}
+
+:root {
+  color-scheme: dark;
+
+  /* colour */
+  --bg: #000;
+  --ink: #e2e2e2;
+  --ink-soft: rgba(255, 255, 255, 0.5);
+  --ink-label: rgba(255, 255, 255, 0.53);
+  --pill: #1b1b1b;
+  --pill-hover: #262626;
+  --field: #010101;
+  --field-border: #222;
+  --field-border-focus: #3a3a3a;
+  --card: #fff;
+  --card-story: #e2e2e2;
+  --card-ink: #1e1e1e;
+  --card-border: rgba(0, 0, 0, 0.15);
+  --panel: #252525;
+  --sheet-bg: #1e1e1e; /* mobile lesson sheet: 20% darker than --panel */
+  --panel-ink: #d4d4d4;
+  --preview: #fff;
+  --round-btn: #eee;
+  --error: #ff8f8f;
+
+  /* type */
+  --font-sans: "Inter", system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+  --font-display: "Cooper Lt BT", "Iowan Old Style", Georgia, serif;
+  --font-mono: "Geist Mono", ui-monospace, SFMono-Regular, Menlo, monospace;
+  --lede-size: 28px;
+
+  /* layout */
+  --gutter: 40px;
+  --col: 560px;                              /* header text column */
+  --nav-h: 64px;
+  --pill-h: 37px;
+  --hero-top: clamp(24px, 7.86vh, 67px);    /* 67 / 852 */
+  --hello-gap: 71px;                         /* logo → "Hello!" row */
+  --fade-zone: 30vh;                         /* bottom 30%: fade + blur 0→8px */
+
+  /* motion */
+  --ease-out: cubic-bezier(0.22, 1, 0.36, 1);
+  --ease-spring: cubic-bezier(0.32, 1.25, 0.52, 1);
+  --morph: 900ms;
+  /* swipe between story cards: quick spring, ~8% overshoot, settles in 550ms */
+  --swipe: 550ms;
+  /* pull release: iOS-like settle, no overshoot */
+  --pull-back: 520ms;
+  --ease-pull: cubic-bezier(0.2, 0.9, 0.25, 1);
+  --ease-swipe: cubic-bezier(0.25, 1.3, 0.5, 1); /* fallback */
+  /* entry animation (main.js overwrites these from its ENTRANCE settings) */
+  --enter-dur: 600ms;
+  --enter-rise: 12px;
+  --enter-blur: 12px;
+  --enter-ease: cubic-bezier(0, -0.02, 0.49, 0.99);
+}
+
+@supports (height: 1dvh) {
+  :root { --fade-zone: 30dvh; }
+}
+
+/* ---------- base ---------- */
+*, *::before, *::after { box-sizing: border-box; }
+
+html {
+  background: var(--bg);
+  -webkit-text-size-adjust: 100%;
+  text-size-adjust: 100%;
+  scrollbar-gutter: stable; /* no layout shift when scrolling is locked */
+}
+/* scroll lock: lesson open, or in the cards view */
+html.is-locked,
+html.is-stories { overflow: hidden; }
+
+body {
+  margin: 0;
+  min-height: 100vh;
+  background: var(--bg);
+  color: var(--ink);
+  font-family: var(--font-sans);
+  font-size: 16px;
+  line-height: normal;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  /* clip (not hidden): hidden would make <body> a scroll container while the
+     page is locked, which un-sticks the Sign up button */
+  overflow-x: clip;
+}
+
+img, svg { display: block; }
+button { font: inherit; color: inherit; }
+p, h1, h2, h3, ul, ol { margin: 0; }
+
+:focus-visible { outline: 2px solid rgba(255, 255, 255, 0.85); outline-offset: 3px; }
+
+.visually-hidden {
+  position: absolute !important;
+  width: 1px; height: 1px;
+  margin: -1px; padding: 0; border: 0;
+  overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap;
+}
+
+.skip-link {
+  position: fixed; left: 16px; top: 16px; z-index: 100;
+  padding: 10px 14px; border-radius: 12px;
+  background: var(--ink); color: #000; text-decoration: none;
+  transform: translateY(-200%);
+}
+.skip-link:focus { transform: none; }
+
+/* ---------- entry animation ----------
+   boot.js adds .is-entering before first paint; main.js animates each
+   [data-enter] element in (fade + 12px rise + blur 12→0), top to bottom,
+   then removes the class. */
+.is-entering [data-enter],
+.is-entering .deck,
+.is-entering .fx-glow { opacity: 0; }
+
+/* ---------- pill (Sign up) ---------- */
+.pill {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex: none;
+  padding: 9px 11px;
+  border-radius: 12px;
+  background: var(--pill);
+  color: var(--ink-soft);
+  font-size: 16px;
+  line-height: normal;
+  text-decoration: none;
+  white-space: nowrap;
+  transition: color 0.2s ease, background-color 0.2s ease;
+}
+.pill:hover { color: rgba(255, 255, 255, 0.8); background: var(--pill-hover); }
+
+/* ---------- nav ----------
+   64px bar at the very top. The logo fades in and un-blurs (12→0, same
+   timing as the entry animation, no movement) when the Sign up button docks
+   into the bar, and reverses when you scroll back up. */
+.nav {
+  position: fixed;
+  inset: 0 0 auto 0;
+  z-index: 30;
+  height: var(--nav-h);
+  padding: 0 var(--gutter) 0 22px;
+  pointer-events: none;
+}
+.nav.is-visible { pointer-events: auto; }
+
+.nav__inner {
+  display: flex;
+  align-items: center;
+  height: 100%;
+  max-width: var(--col);
+  margin: 0 auto;
+}
+
+.brand {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  color: inherit;
+  text-decoration: none;
+  opacity: 0;
+  filter: blur(var(--enter-blur));
+  pointer-events: none;
+  transition:
+    opacity var(--enter-dur) var(--enter-ease),
+    filter var(--enter-dur) var(--enter-ease);
+}
+.nav.is-visible .brand { opacity: 1; filter: blur(0); pointer-events: auto; }
+.brand__mark { width: 70px; height: 39px; object-fit: cover; }
+.brand__type { position: relative; width: 86px; height: 28px; }
+.brand__line { position: absolute; height: 12px; width: auto; }
+.brand__line--1 { left: 2px; top: 0; }
+.brand__line--2 { left: 1px; top: 16px; }
+
+/* the bar's background: solid for the bar's height, then a short fade so text scrolling
+   underneath doesn't cut off hard */
+.nav-scrim {
+  position: fixed;
+  inset: 0 0 auto 0;
+  z-index: 15;
+  height: calc(var(--nav-h) + 48px);
+  background: linear-gradient(to bottom, #000 0, #000 var(--nav-h), rgba(0, 0, 0, 0) 100%);
+  pointer-events: none;
+  opacity: 0;
+  transition: opacity 0.45s var(--ease-out);
+}
+.nav.is-visible + .nav-scrim { opacity: 1; }
+.is-stories .nav-scrim { opacity: 0 !important; }
+
+/* ---------- hero ---------- */
+.hero {
+  position: relative;
+  z-index: 1;
+  padding: 0 var(--gutter);
+  transition: opacity 0.55s var(--ease-out), filter 0.55s var(--ease-out), transform var(--pull-back) var(--ease-pull);
+}
+.hero--intro { padding-top: var(--hero-top); padding-bottom: var(--hello-gap); }
+.hero--body { padding-bottom: 0; } /* main.js sizes the spacer so the page ends at the email field */
+.is-stories .hero { opacity: 0; filter: blur(6px); pointer-events: none; }
+
+.hero__inner { max-width: var(--col); margin: 0 auto; }
+
+/* Sign up: a zero-height sticky rail at the top of the "Hello!" row. Its
+   containing block is <main>, so once it docks it stays for the whole page
+   (stories included). top = centred in the nav bar. */
+.cta-rail {
+  position: sticky;
+  top: calc((var(--nav-h) - var(--pill-h)) / 2);
+  z-index: 31;
+  height: 0;
+  padding: 0 var(--gutter);
+}
+.cta-rail__inner {
+  position: relative;
+  max-width: var(--col);
+  margin: 0 auto;
+  /* in the cards view main.js lifts an undocked button up into the nav bar */
+  transition: transform var(--enter-dur) var(--enter-ease);
+}
+.cta-rail__inner.is-instant { transition: none; }
+.cta { position: absolute; top: 0; right: 0; }
+
+.hero__logo {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  font-size: 0;
+}
+.hero__markbox {
+  position: relative;
+  display: block;
+  width: var(--mark-w);
+  height: var(--mark-h);
+  overflow: hidden; /* the intro clip is scaled up 3% to line up; keep it inside the logo's edges */
+}
+.hero__mark { display: block; width: 100%; height: 100%; object-fit: cover; }
+
+/* ---------- intro (page load) ----------
+   boot.js adds .is-intro before first paint; main.js plays the video in the
+   logo's box, shows the tagline, cuts to the logo, then runs the entrance. */
+.hero--intro .hero__inner {
+  --mark-w: 163px; /* logo box: the image and the intro video share it */
+  --mark-h: 91px;
+  position: relative;
+}
+.hero__intro-video {
+  position: absolute;
+  inset: 0;
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: cover; /* same box + same fit as the logo */
+  /* Lines the clip's last frame up with the logo's first frame (measured by
+     matching the two frames' edges): the hands in the logo loop are 3% smaller
+     and sit slightly left/down, so the clip is scaled and nudged to match. */
+  transform: translate(0.32%, -0.58%) scale(1.031);
+  opacity: 0;        /* main.js fades it in once it's fully loaded and playing */
+  pointer-events: none;
+}
+.is-intro .hero__mark { opacity: 0; }
+
+.hero__intro-text {
+  position: absolute;
+  left: 50%;
+  top: calc(var(--mark-h) + 36px);
+  display: none;
+  margin: 0;
+  transform: translateX(-50%);
+  font-family: var(--font-display);
+  font-weight: 400;
+  font-size: var(--intro-size, 23.5px); /* main.js fits the widest line to the logo's width */
+  line-height: 1.15;
+  text-align: center;
+  white-space: nowrap;
+  color: var(--ink);
+  pointer-events: none;
+}
+.hero__intro-text > span { display: block; }
+.is-intro .hero__intro-text,
+.hero__intro-text.is-leaving { display: block; }
+.hero__intro-text:not(.is-on) > span { opacity: 0; }
+.hero__type { width: 164px; height: 16px; object-fit: contain; }
+
+.hello {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  min-height: var(--pill-h);
+  padding-right: 100px; /* room for the Sign up button beside it */
+}
+.hello__text {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 28px;
+  line-height: normal;
+  letter-spacing: -0.008em; /* matches Figma's Inter line breaks */
+  color: var(--ink);
+}
+/* Animated wave. --wave-size is the rendered size of the whole 80×80 SVG
+   (original 80px → 64px → now 54.4px). In the SVG the hand is 32px wide,
+   starting 25px in; the slot is sized to the hand so it sits right next to
+   "Hello!" (6px gap) and the rest of the SVG hangs outside the slot. */
+.hello__wave {
+  --wave-size: 54.4px;
+  position: relative;
+  flex: none;
+  width: calc(var(--wave-size) * 0.4);   /* 32 / 80 */
+  height: calc(var(--wave-size) * 0.4);
+}
+.hello__wave img {
+  position: absolute;
+  left: calc(var(--wave-size) * -0.3125); /* -25 / 80 */
+  top: calc(var(--wave-size) * -0.3125);
+  width: var(--wave-size);
+  height: var(--wave-size);
+  max-width: none;
+  pointer-events: none;
+}
+
+.lede {
+  margin-top: 62px;
+  font-size: var(--lede-size);
+  line-height: normal;
+  letter-spacing: -0.008em; /* matches Figma's Inter line breaks */
+  color: var(--ink);
+}
+.lede--second { margin-top: 64px; }
+
+/* ---------- email field ---------- */
+.signup { margin-top: var(--signup-gap, 40px); } /* main.js centres it in the gap above the cards */
+
+.signup__label {
+  display: block;
+  min-height: 17px;
+  margin: 0 0 4px;
+  padding-left: 10px;
+  font-size: 14px;
+  line-height: normal;
+  color: var(--ink-label);
+}
+.signup__msg:empty { display: none; }
+.signup.has-msg .signup__hint { display: none; }
+.signup.is-error .signup__msg { color: var(--error); }
+.signup.is-success .signup__msg { color: var(--ink); }
+
+.signup__field {
+  position: relative;
+  display: flex;
+  align-items: center;
+  width: min(100%, 298px);
+  height: 52px;
+  padding: 0 49px 0 12px;
+  border: 1px solid var(--field-border);
+  border-radius: 16px;
+  background: var(--field);
+  overflow: hidden;
+  transition: border-color 0.2s ease, box-shadow 0.2s ease;
+}
+.signup__field:focus-within {
+  border-color: var(--field-border-focus);
+  box-shadow: 0 0 0 4px rgba(255, 255, 255, 0.05);
+}
+.signup.is-error .signup__field { border-color: rgba(255, 143, 143, 0.45); }
+
+.signup__input {
+  flex: 1;
+  min-width: 0;
+  height: 100%;
+  padding: 0;
+  border: 0;
+  outline: 0;
+  background: transparent;
+  color: #fff;
+  font: 16px/normal var(--font-sans);
+  caret-color: #fff;
+}
+.signup__input::placeholder { color: rgba(255, 255, 255, 0.5); opacity: 1; }
+.signup__input:-webkit-autofill {
+  -webkit-text-fill-color: #fff;
+  -webkit-box-shadow: 0 0 0 40px var(--field) inset;
+  transition: background-color 9999s;
+}
+
+.signup__submit {
+  position: absolute;
+  top: 50%;
+  right: 9px;
+  width: 32px;
+  height: 32px;
+  padding: 0;
+  border: 0;
+  border-radius: 8px;
+  background: transparent;
+  cursor: pointer;
+  transform: translateY(-50%);
+  transition: transform 0.2s var(--ease-out), opacity 0.2s ease;
+}
+.signup__submit:hover { transform: translateY(-50%) translateX(1px); }
+.signup__submit:active { transform: translateY(-50%) scale(0.94); }
+.signup.is-busy .signup__submit { opacity: 0.5; pointer-events: none; animation: pulse 1s ease-in-out infinite; }
+.signup.is-success .signup__submit { opacity: 0.35; pointer-events: none; }
+
+@keyframes pulse { 50% { opacity: 0.25; } }
+
+.hp { position: absolute; left: -10000px; width: 1px; height: 1px; overflow: hidden; }
+
+.stories-spacer { height: 80vh; }
+@supports (height: 1svh) { .stories-spacer { height: 80svh; } }
+
+/* ---------- viewport fx: fade + progressive blur (bottom 30%) ----------
+   Fade: a fixed gradient over the bottom 30% of the screen.
+   Blur: main.js blurs the header content itself, one line of text (or one
+   block, like the email field) at a time, by where it sits on screen:
+   0px at 70% of the viewport height → 8px at the bottom edge. Each line is
+   blurred evenly, so there are no half-sharp words or halos. */
+.fx-fade {
+  position: fixed;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  z-index: 2;
+  height: var(--fade-zone);
+  background: linear-gradient(to bottom, rgba(0, 0, 0, 0) 0%, rgba(0, 0, 0, 0.5) 50%, #000 100%);
+  pointer-events: none;
+  transition: opacity 0.6s var(--ease-out);
+}
+
+
+/* Animated glow (BottomAnimationV4). Same placement as the old static one:
+   pinned to the bottom, centred, above the header text, below the cards. */
+.fx-glow {
+  position: fixed;
+  left: 50%;
+  bottom: -1px;
+  z-index: 4;
+  width: 778px;
+  height: 578px;
+  margin-left: -389px;
+  pointer-events: none;
+  transition: opacity 0.8s var(--ease-out);
+}
+/* Safari / iOS get the MP4 flattened onto black; "screen" drops the black */
+.fx-glow.is-flat { mix-blend-mode: screen; }
+.fx-glow__video {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.is-stories .fx-fade,
+.is-stories .fx-glow { opacity: 0; }
+
+/* typing in the email field: lift the fade so the field stays readable
+   (main.js also drops the field's blur) */
+.is-typing .fx-fade { opacity: 0; }
+
+/* ---------- pull hint ---------- */
+.pull-hint {
+  position: fixed;
+  left: 0;
+  right: 0;
+  top: 80vh; /* main.js puts it 20px above the card pile */
+  z-index: 19;
+  margin: 0;
+  font-family: var(--font-sans);
+  font-size: 14px;
+  line-height: normal;
+  text-align: center;
+  color: #fff;
+  pointer-events: none;
+  /* same entry animation as page load: fade + rise + blur 12→0 */
+  opacity: 0;
+  transform: translateY(var(--enter-rise));
+  filter: blur(var(--enter-blur));
+  transition:
+    opacity var(--enter-dur) var(--enter-ease),
+    transform var(--enter-dur) var(--enter-ease),
+    filter var(--enter-dur) var(--enter-ease);
+}
+.pull-hint.is-visible { opacity: 1; transform: none; filter: blur(0); }
+/* follows the pull without lag: brightens 50% → 100%, rises with the cards.
+   It's a <button> (clickable on desktop only); reset to plain text. */
+.pull-hint__btn {
+  position: relative;
+  display: inline-block;
+  margin: 0;
+  padding: 0;
+  border: 0;
+  border-radius: 8px;
+  background: none;
+  font: inherit;
+  color: inherit;
+  pointer-events: none;
+  -webkit-tap-highlight-color: transparent;
+  opacity: var(--hint-o, 0.5);
+  transform: translateY(var(--hint-rise, 0px));
+  transition: opacity 0.4s ease, transform var(--pull-back) var(--ease-pull);
+}
+.pull-hint__btn::before { content: ''; position: absolute; inset: -12px -18px; } /* bigger hit area, same layout */
+.pull-hint__btn:focus-visible { outline: 2px solid rgba(255, 255, 255, 0.6); outline-offset: 6px; }
+.pull-hint__desk { display: none; }
+
+/* While a finger/trackpad drives the pull, nothing lags behind it; on
+   release these transitions spring things back (or into place). */
+.is-pulling .hero,
+.is-pulling .deck,
+.is-pulling .stage__caption,
+.is-pulling .stage__arrow,
+.is-pulling .pull-hint__btn { transition: none !important; }
+.is-stories .pull-hint { opacity: 0; } /* never shows in the cards view */
+
+/* ---------- stage / deck ---------- */
+.stage {
+  position: fixed;
+  inset: 0;
+  z-index: 20;
+  pointer-events: none;
+  display: none;
+}
+.js .stage { display: block; }
+
+.deck {
+  position: absolute;
+  inset: 0;
+  perspective: 1400px;                      /* slight 3D as cards enter/exit */
+  perspective-origin: 50% var(--po-y, 50%);
+  transition: transform var(--pull-back) var(--ease-pull); /* rises with the pull */
+}
+
+.card {
+  position: absolute;
+  left: 0;
+  top: 0;
+  display: grid;
+  place-items: center;
+  width: 327px;
+  height: 223px;
+  padding: 0;
+  margin: 0;
+  border: 1px solid var(--card-border);
+  border-radius: 40px;
+  background: var(--card);
+  color: var(--card-ink);
+  box-shadow: 0 30px 80px rgba(0, 0, 0, 0.4);
+  overflow: hidden;
+  cursor: pointer;
+  pointer-events: auto;
+  touch-action: pan-y;
+  user-select: none;
+  -webkit-user-select: none;
+  -webkit-tap-highlight-color: transparent;
+  transform-origin: 50% 50%;
+  will-change: transform;
+  transition-property: transform, width, height, border-radius, background-color, box-shadow, opacity;
+  transition-duration: var(--swipe), 550ms, 550ms, 550ms, 450ms, 450ms, 300ms;
+  transition-timing-function: var(--ease-swipe), var(--ease-out), var(--ease-out), var(--ease-out), var(--ease-out), var(--ease-out), ease;
+}
+@supports (transition-timing-function: linear(0, 1)) {
+  :root {
+    --ease-swipe: linear(0, 0.051, 0.175, 0.334, 0.502, 0.659, 0.793, 0.901, 0.981, 1.035, 1.067, 1.081, 1.083, 1.076, 1.064, 1.051, 1.037, 1.024, 1.014, 1.006, 1, 0.996, 0.994, 0.993, 0.993, 0.994, 0.995, 0.996, 0.997, 0.998, 0.999, 1, 1);
+  }
+}
+.card:focus-visible { outline-offset: 6px; }
+
+.deck.is-morphing .card {
+  transition-duration: var(--morph), var(--morph), var(--morph), var(--morph), 600ms, 600ms, 500ms;
+  transition-timing-function: var(--ease-spring), var(--ease-out), var(--ease-out), var(--ease-out), ease, ease, ease;
+}
+/* In the cards view the swipe physics (main.js) moves the cards every frame,
+   so only the morph between pile and cards uses CSS transitions. */
+.is-stories .deck:not(.is-morphing) .card {
+  transition-property: border-radius, background-color, box-shadow;
+}
+.deck.is-dragging .card,
+.deck.is-instant .card,
+.card.is-wrapping { transition: none !important; }
+.card.is-wrapping { opacity: 0 !important; }
+
+.is-stories .card {
+  background: var(--card-story);
+  border-radius: 48px;
+  box-shadow: 0 30px 80px rgba(0, 0, 0, 0.25);
+}
+
+.card__visual {
+  display: grid;
+  place-items: center;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+  /* while peeking, main.js lifts the content to the top of the card */
+  transform: translateY(var(--lift, 0px));
+  transition: transform 550ms var(--ease-out);
+}
+.deck.is-morphing .card__visual { transition-duration: var(--morph); }
+.deck.is-instant .card__visual { transition: none; }
+
+/* Card videos: square and deliberately bigger than the card. They're shown
+   at --media-size × the card's height (MEDIA_SIZE in lessons.js), centred,
+   and the card's rounded corners crop the rest. While a card peeks, the whole
+   video is lifted with --lift, like any card content. */
+.card__visual--media { position: relative; display: block; }
+.card__video {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  display: block;
+  width: auto;
+  max-width: none;
+  height: calc(var(--media-size, 1.15) * 100%);
+  aspect-ratio: 1;
+  object-fit: cover;
+  transform: translate(-50%, -50%);
+  pointer-events: none;
+  /* grey in the pile at the bottom; the colour comes in as the cards open
+     into the sliding section (and drains out as they go back) */
+  filter: grayscale(1);
+  transition: filter var(--morph) var(--ease-out);
+}
+.is-stories .card__video { filter: none; }
+
+/* card visuals (shared with the lesson preview) */
+.v-rules {
+  font-family: var(--font-display);
+  font-weight: 400;
+  font-size: 56.885px;
+  line-height: normal;
+  text-align: center;
+  opacity: 0.5;
+}
+
+.v-bullets {
+  padding: 0 0 0 36px;
+  margin: 0;
+  font-family: var(--font-display);
+  font-weight: 400;
+  font-size: 24px;
+  line-height: 40px;
+  list-style: disc;
+  opacity: 0.5;
+  text-align: left;
+}
+/* In the pile the list starts 70.86px from the card's left edge (Figma); in the
+   stories viewer it's centred. Transform keeps the move animated. */
+.card .v-bullets {
+  transform: translateX(calc(50% - 104.64px));
+  transition: transform var(--morph) var(--ease-out);
+}
+.is-stories .card .v-bullets { transform: translateX(10px); }
+@media (max-width: 899px) {
+  /* phone pile: keep the bullet dots on screen */
+  html:not(.is-stories) .card .v-bullets { transform: translateX(calc(50% - 74px)); }
+}
+
+.v-focus {
+  font-family: var(--font-display);
+  font-weight: 400;
+  font-size: 44px;
+  line-height: 1.05;
+  text-align: center;
+}
+.v-focus span { opacity: 0.5; }
+.v-focus em { font-style: normal; opacity: 0.5; }
+.is-stories .card .v-focus em { opacity: 0.9; }
+
+/* progress bars */
+.stage__progress {
+  position: absolute;
+  left: var(--p-left, 72px);
+  top: var(--p-top, 132px);
+  width: var(--p-w, 249px);
+  height: 2px;
+  display: flex;
+  gap: 4px;
+  opacity: 0;
+  transition: opacity 0.35s ease;
+}
+.is-stories .stage__progress { opacity: 1; transition-delay: 0.35s; }
+
+.seg {
+  position: relative;
+  flex: 1 0 0;
+  height: 100%;
+  border-radius: 24px;
+  background: rgba(217, 217, 217, 0.3);
+  overflow: hidden;
+}
+.seg > i {
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  background: var(--ink);
+  transform: scaleX(0);
+  transform-origin: 0 50%;
+}
+.seg.is-done > i { transform: scaleX(1); }
+.seg.is-active > i { animation: seg-fill var(--story-ms, 5000ms) linear forwards; }
+.stage.is-paused .seg.is-active > i { animation-play-state: paused; }
+
+@keyframes seg-fill { from { transform: scaleX(0); } to { transform: scaleX(1); } }
+
+/* caption */
+.stage__caption {
+  position: absolute;
+  left: var(--c-left, 40px);
+  top: var(--c-top, 724px);
+  width: var(--c-w, 313px);
+  font-family: var(--font-display);
+  font-weight: 400;
+  font-size: 28px;
+  line-height: normal;
+  text-align: center;
+  text-wrap: balance;
+  color: var(--ink);
+  opacity: 0;
+  transition: opacity 0.2s ease, transform var(--pull-back) var(--ease-pull); /* fade: leaving the cards view; move: pull-down */
+}
+.is-stories .stage__caption { opacity: 1; }
+/* the text itself animates in with the entry animation (main.js) */
+.stage__caption > span { display: block; }
+
+/* desktop arrows */
+.stage__arrow {
+  position: absolute;
+  top: var(--a-top, 50%);
+  display: none;
+  place-items: center;
+  width: 40px;
+  height: 40px;
+  padding: 0;
+  border: 0;
+  border-radius: 50%;
+  background: var(--pill);
+  color: rgba(255, 255, 255, 0.7);
+  cursor: pointer;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.3s ease, background-color 0.2s ease, color 0.2s ease, transform var(--pull-back) var(--ease-pull);
+}
+.stage__arrow:hover { background: var(--pill-hover); color: #fff; }
+.stage__arrow--prev { left: var(--a-prev, 0); }
+.stage__arrow--next { left: var(--a-next, 0); }
+
+/* desktop: × to close the cards view, top-right corner, centred in the nav
+   bar's height. Fades and un-blurs in like the nav logo. */
+.stories-close {
+  position: fixed;
+  top: calc((var(--nav-h) - 40px) / 2);
+  /* 20px from the corner; on narrow desktops a little closer, so there's
+     always at least 16px between it and Sign up (at the text column's edge) */
+  right: clamp(8px, calc(50% - var(--col) / 2 - 56px), 20px);
+  z-index: 32;
+  display: none;
+  place-items: center;
+  width: 40px;
+  height: 40px;
+  padding: 0;
+  border: 0;
+  border-radius: 50%;
+  background: var(--pill);
+  color: rgba(255, 255, 255, 0.7);
+  cursor: pointer;
+  opacity: 0;
+  filter: blur(var(--enter-blur));
+  pointer-events: none;
+  transition:
+    opacity var(--enter-dur) var(--enter-ease),
+    filter var(--enter-dur) var(--enter-ease),
+    background-color 0.2s ease,
+    color 0.2s ease;
+}
+.stories-close:hover { background: var(--pill-hover); color: #fff; }
+.stories-close:focus-visible { outline: 2px solid rgba(255, 255, 255, 0.6); outline-offset: 3px; }
+
+/* ---------- lesson dialog ----------
+   Mobile (< 900px): bottom sheet from Figma 99:808. Starts 38px under the
+   nav, 64px top corners; drag the handle down (or tap it) to close. The
+   bottom 15% of the sheet fades the text out and blurs it progressively
+   (per line, in main.js). Desktop: centred dialog (see the 900px block). */
+.lesson {
+  --surface: var(--sheet-bg);
+  position: fixed;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  max-width: none;
+  max-height: none;
+  margin: 0;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  color: var(--panel-ink);
+  /* clip, not hidden: opening the dialog moves focus inside it, and a
+     scrollable (hidden) box would get scrolled to reveal the still
+     off-screen sheet, making it jump instead of slide */
+  overflow: clip;
+}
+.lesson::backdrop { background: transparent; }
+
+.lesson__scrim {
+  position: absolute;
+  inset: var(--nav-h) 0 0 0; /* the nav stays visible above the sheet */
+  background: rgba(0, 0, 0, 0.92);
+  opacity: 0;
+  transition: opacity 0.35s ease;
+}
+.lesson.is-open .lesson__scrim { opacity: var(--sheet-dim, 1); }
+
+.lesson__panel {
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: calc(var(--nav-h) + 38px);
+  bottom: 0;
+  border: 0.5px solid rgba(255, 255, 255, 0.1);
+  border-bottom: 0;
+  border-radius: 64px 64px 0 0;
+  background: var(--surface);
+  box-shadow: 0 30px 80px rgba(0, 0, 0, 0.25);
+  overflow: clip;
+  transform: translateY(calc(100% + 40px));
+  transition: transform 0.38s cubic-bezier(0.4, 0, 1, 1); /* closing: ease-in */
+}
+.lesson.is-open .lesson__panel {
+  transform: translateY(var(--sheet-drag, 0px));
+  transition: transform 0.5s var(--ease-out);
+}
+.lesson.is-dragging .lesson__panel,
+.lesson.is-dragging .lesson__scrim { transition: none; }
+
+.lesson__scroll {
+  position: relative;
+  height: 100%;
+  padding-bottom: 20vh; /* lets the last lines scroll clear of the fade */
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  -webkit-overflow-scrolling: touch;
+  scrollbar-width: none;
+  -webkit-mask-image: linear-gradient(to bottom, #000 0, #000 85%, transparent 100%);
+  mask-image: linear-gradient(to bottom, #000 0, #000 85%, transparent 100%);
+}
+.lesson__scroll::-webkit-scrollbar { display: none; }
+
+/* Sticky header (handle + preview): covers the gap above the preview so text
+   scrolling underneath disappears; the preview's panel-coloured shadow fogs
+   the rest. On mobile it's also the drag handle for the sheet. */
+.lesson__head {
+  position: sticky;
+  top: 0;
+  z-index: 1;
+  padding: 23px 22px 0;
+  background: linear-gradient(to bottom, var(--surface) 0, var(--surface) 50%, transparent 50%);
+  touch-action: none;
+  cursor: grab;
+  user-select: none;          /* a text selection would turn the drag into a native drag-and-drop */
+  -webkit-user-select: none;
+}
+.lesson.is-dragging .lesson__head { cursor: grabbing; }
+
+.lesson__grabber {
+  position: absolute;
+  top: 0;
+  left: 50%;
+  width: 120px;
+  height: 23px;
+  margin-left: -60px;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  cursor: inherit;
+}
+.lesson__grabber::before {
+  content: "";
+  position: absolute;
+  top: 9px;
+  left: 50%;
+  width: 64px;
+  height: 4px;
+  margin-left: -32px;
+  border-radius: 24px;
+  background: rgba(217, 217, 217, 0.2);
+}
+
+.lesson__preview {
+  position: relative;
+  aspect-ratio: 345 / 219;
+  border-radius: 40px;
+  background: var(--preview);
+  box-shadow: 0 25px 80px var(--surface);
+  overflow: hidden;
+  color: var(--card-ink);
+}
+
+.round-btn {
+  position: absolute;
+  display: grid;
+  place-items: center;
+  width: 40px;
+  height: 40px;
+  padding: 0;
+  border: 0;
+  border-radius: 24px;
+  background: var(--round-btn);
+  cursor: pointer;
+  transition: transform 0.2s var(--ease-out), background-color 0.2s ease;
+}
+.round-btn:hover { background: #e4e4e4; }
+.round-btn:active { transform: scale(0.94); }
+.lesson__play { left: 16px; bottom: 16px; }
+.lesson__close { right: 16px; top: 16px; display: none; } /* desktop only */
+
+.lesson__body {
+  padding: 40px 41px 0 38px;
+  font-family: var(--font-sans);
+  font-size: 18px;
+  line-height: normal;
+  color: var(--panel-ink);
+}
+.lesson__section + .lesson__section { margin-top: 64px; }
+
+/* "proof-of-concept" tag: yellow, pinned to the top-left corner of the page
+   while a lesson is open (it's inside the dialog, so it sits above the
+   dialog's backdrop). On phones it takes the nav logo's spot. */
+.lesson__tag {
+  position: absolute;
+  top: calc(var(--nav-h) / 2); /* centred in the nav bar's height, however many lines it takes */
+  left: 16px;
+  z-index: 3;
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+  width: fit-content;
+  max-width: calc(100vw - 16px - var(--gutter) - 79px - 16px); /* stops 16px short of Sign up */
+  margin: 0;
+  padding: 6px 11px;
+  border-radius: 10px;
+  background: #ffd43b;
+  color: #1c1a12;
+  font: 500 11px/1.35 var(--font-sans);
+  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.25);
+  pointer-events: none;
+  opacity: 0;
+  translate: 0 calc(-50% - 6px);
+  transition: opacity 0.35s ease, translate 0.35s var(--ease-out);
+}
+.lesson__tag::before {
+  content: "";
+  flex: none;
+  width: 5px;
+  height: 5px;
+  border-radius: 50%;
+  background: currentColor;
+  transform: translateY(-1px);
+}
+.lesson.is-open .lesson__tag { opacity: 1; translate: 0 -50%; }
+/* phones: the tag takes the nav logo's spot while the sheet is open */
+@media (max-width: 899px) {
+  html.is-locked .nav .brand { opacity: 0; filter: blur(var(--enter-blur)); pointer-events: none; }
+}
+.lesson__section h3 { font-size: 18px; font-weight: 700; margin: 0; }
+.lesson__section p + p { margin-top: 1.21em; } /* one blank line */
+
+.split-line { display: block; }
+
+.inline-logo {
+  display: inline-block;
+  width: 1.1em;
+  height: 1.1em;
+  margin: 0 0.2em;
+  border-radius: 0.3em;
+  background: #3a3a3a;
+  vertical-align: -0.2em;
+}
+
+/* ---------- lesson preview slides + demos ----------
+   Scroll-driven: each section of the lesson has a state of the preview. As
+   the section in focus changes (main.js), the slide gets s1…s4 (cumulative)
+   and the demo transitions into that state; scrolling back reverses it.
+   The play button runs through all the states. */
+.slide {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  place-items: center;
+}
+.demo { position: relative; display: grid; place-items: center; width: 100%; height: 100%; }
+
+/* rules: the key idea, then the follow-ups one by one */
+.demo--rules .v-rules { transition: transform 0.7s var(--ease-out), opacity 0.5s ease; }
+.demo--rules .demo__follow {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  margin: 0;
+  padding: 0 0 0 26px;
+  font-family: var(--font-display);
+  font-weight: 400;
+  font-size: 18px;
+  line-height: 28px;
+  transform: translate(-50%, -10%);
+  list-style: disc;
+}
+.demo--rules .demo__follow li {
+  opacity: 0;
+  transform: translateY(8px);
+  transition: opacity 0.5s ease, transform 0.5s var(--ease-out);
+}
+.slide.s1 .demo--rules .v-rules { transform: translateY(-46px) scale(0.62); opacity: 0.85; }
+.slide.s2 .demo--rules .demo__follow li:nth-child(1),
+.slide.s3 .demo--rules .demo__follow li:nth-child(2),
+.slide.s4 .demo--rules .demo__follow li:nth-child(3) { opacity: 0.55; transform: none; }
+
+/* bullets: the points light up and the connective tissue is drawn through them */
+.demo--bullets .v-bullets { position: relative; opacity: 1; list-style: none; }
+.demo--bullets .v-bullets li { position: relative; opacity: 0.5; transition: opacity 0.4s ease; }
+.demo--bullets .v-bullets li::before {
+  content: "";
+  position: absolute;
+  left: -22px;
+  top: 17px;
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: currentColor;
+}
+.demo--bullets .v-bullets::after {
+  content: "";
+  position: absolute;
+  left: 16.25px;
+  top: 20px;
+  width: 1.5px;
+  height: calc(100% - 40px);
+  background: currentColor;
+  opacity: 0.6;
+  transform: scaleY(0);
+  transform-origin: 50% 0;
+  transition: transform 0.7s var(--ease-out);
+}
+.slide.s1 .demo--bullets .v-bullets li:nth-child(1),
+.slide.s2 .demo--bullets .v-bullets li:nth-child(2),
+.slide.s3 .demo--bullets .v-bullets li:nth-child(3),
+.slide.s4 .demo--bullets .v-bullets li:nth-child(4) { opacity: 1; }
+.slide.s2 .demo--bullets .v-bullets::after { transform: scaleY(0.333); }
+.slide.s3 .demo--bullets .v-bullets::after { transform: scaleY(0.667); }
+.slide.s4 .demo--bullets .v-bullets::after { transform: scaleY(1); }
+
+/* focus: one word wins */
+.demo--focus .v-focus span,
+.demo--focus .v-focus em {
+  display: inline-block;
+  transition: opacity 0.5s ease, transform 0.7s var(--ease-spring);
+}
+.slide.s1 .demo--focus .v-focus em { opacity: 0.9; }
+.slide.s2 .demo--focus .v-focus span { opacity: 0.3; }
+.slide.s2 .demo--focus .v-focus em { opacity: 1; }
+.slide.s3 .demo--focus .v-focus span { opacity: 0.2; }
+.slide.s3 .demo--focus .v-focus em { transform: scale(1.2); }
+.slide.s4 .demo--focus .v-focus span { opacity: 0.12; }
+.slide.s4 .demo--focus .v-focus em { transform: scale(1.35); }
+
+/* the section in focus lights up; the others wait dimmed */
+.lesson__section { opacity: 0.28; transition: opacity 0.45s ease; }
+.lesson__section.is-active { opacity: 1; }
+
+/* ---------- 404 ---------- */
+.not-found { display: grid; place-items: center; min-height: 100vh; padding: 40px; text-align: center; }
+.not-found__inner { display: grid; justify-items: center; gap: 32px; max-width: 420px; }
+.not-found .lede { margin: 0; }
+
+/* ==========================================================================
+   Tablet / desktop (preliminary)
+   ========================================================================== */
+@media (min-width: 640px) {
+  :root { --lede-size: 30px; }
+  .nav { padding-left: var(--gutter); } /* logo lines up with the text column */
+}
+
+@media (min-width: 900px) {
+  :root {
+    --gutter: 48px;
+    --col: 660px;    /* text column: header text, nav bar (logo ↔ Sign up) and email field */
+    --hero-top: 56px;
+    --hello-gap: 88px;
+    --lede-size: 32px;
+  }
+
+  .hero--intro .hero__inner { --mark-w: 196px; --mark-h: 109px; }
+  .hero__type { width: 197px; height: 19px; }
+  .hello__text { font-size: 32px; }
+  .lede { margin-top: 72px; line-height: 56px; }
+  .lede--second { margin-top: 72px; }
+
+  /* email field: 30% larger than on phones (field, text, label, button),
+     and as wide as the text column above it */
+  .signup { margin-top: var(--signup-gap, 56px); }
+  .signup__label {
+    min-height: 22px;
+    margin-bottom: 5px;
+    padding-left: 13px;
+    font-size: 18.2px;
+  }
+  .signup__field {
+    width: 100%;
+    height: 68px;
+    padding: 0 64px 0 16px;
+    border-radius: 21px;
+  }
+  .signup__input { font-size: 20.8px; }
+  .signup__submit { right: 12px; width: 42px; height: 42px; border-radius: 10px; }
+  .signup__submit img { width: 100%; height: 100%; }
+
+  /* "See examples below" is a button on desktop (opens the cards) */
+  .pull-hint.is-visible .pull-hint__btn { pointer-events: auto; cursor: pointer; }
+  .pull-hint__btn:hover,
+  .pull-hint__btn:focus-visible { opacity: 1; }
+  .pull-hint__touch { display: none; }
+  .pull-hint__desk { display: inline; }
+
+  .fx-glow {
+    width: 1428px;   /* same 1.835× scale-up as before */
+    height: 1061px;
+    margin-left: -714px;
+  }
+
+  .stage__arrow { display: grid; }
+  .is-stories .stage__arrow { opacity: 1; pointer-events: auto; transition-delay: 0.45s; }
+  .stories-close { display: grid; }
+  .is-stories .stories-close { opacity: 1; filter: blur(0); pointer-events: auto; transition-delay: 0.2s, 0.2s, 0s, 0s; }
+
+  /* lesson: centred dialog instead of the sheet */
+  .lesson {
+    --surface: var(--panel);
+    transition: background-color 0.35s ease, backdrop-filter 0.35s ease, -webkit-backdrop-filter 0.35s ease;
+  }
+  /* the top band (nav bar height) is kept for the proof-of-concept tag */
+  .lesson[open] { display: grid; place-items: center; padding: var(--nav-h) 32px 32px; }
+  .lesson.is-open {
+    background: rgba(13, 13, 13, 0.67);
+    -webkit-backdrop-filter: blur(14px);
+    backdrop-filter: blur(14px);
+  }
+  .lesson__scrim { display: none; }
+  .lesson__panel,
+  .lesson.is-open .lesson__panel {
+    position: relative;
+    inset: auto;
+    width: min(560px, 100%);
+    height: min(880px, calc(100vh - var(--nav-h) - 32px));
+    border: 1px solid var(--card-border);
+    border-radius: 52px;
+    transition: opacity 0.3s ease, transform 0.5s var(--ease-out);
+  }
+  .lesson__panel { opacity: 0; transform: translateY(48px) scale(0.97); }
+  .lesson.is-open .lesson__panel { opacity: 1; transform: none; }
+  .lesson__scroll { padding: 0 7px 72px; -webkit-mask-image: none; mask-image: none; }
+  .lesson__head { margin: 0 -7px; padding: 7px 7px 0; touch-action: auto; cursor: auto; }
+  .lesson__grabber { display: none; }
+  .lesson__close { display: grid; }
+  .lesson__body { padding: 40px 25px 0; font-family: var(--font-mono); font-size: 16px; line-height: 1.2; }
+  /* desktop: top-left corner, level with the × on the right */
+  .lesson__tag { left: 20px; max-width: calc(100vw - 40px); padding: 7px 12px; font-size: 13px; }
+  .lesson__section h3 { font-size: 16px; margin-bottom: 1.2em; }
+  .lesson__section p + p { margin-top: 1.2em; }
+}
+
+/* ---------- mailbox (email field) ----------
+   The animated letterbox (your Letterbox.webm, 168×174 at 12fps) next to the
+   email field's label. It rests on its first frame (the poster: a closed
+   mailbox, flag down, standing on the field). When a signup goes through,
+   main.js plays it once: it hops and pops open with a letter, flag up, and
+   holds the last frame. Safari can't show a WebM's transparency, so it gets
+   the same 7 frames as a sprite, stepped at 12fps (.is-sprite). */
+.signup__label { position: relative; padding-right: 78px; } /* the label text stops short of the mailbox */
+.mailbox {
+  position: absolute;
+  right: 27px;          /* the mailbox ends ~33px in from the field's right edge */
+  bottom: -3px;         /* …and stands just on top of the field */
+  width: 47px;          /* the video's 168×174 at 0.28× */
+  height: 49px;
+  pointer-events: none;
+  transition: opacity 0.3s ease;
+}
+.mailbox__video,
+.mailbox__sprite { position: absolute; inset: 0; display: block; width: 100%; height: 100%; }
+.mailbox__video { object-fit: contain; background: transparent; }
+.mailbox__sprite {
+  display: none;
+  background: url("/assets/img/letterbox-sprite.webp") 0 0 / 700% 100% no-repeat;
+}
+.mailbox.is-sprite .mailbox__video { display: none; }
+.mailbox.is-sprite .mailbox__sprite { display: block; }
+/* 7 frames at 12fps (frame 7 is held), then it stays on the last one */
+.mailbox__sprite.is-playing { animation: mailbox-sprite 0.5s steps(6) forwards; }
+.mailbox__sprite.is-done { background-position: 100% 0; }
+@keyframes mailbox-sprite { to { background-position: 100% 0; } }
+/* an error message gets the full width; the mailbox steps aside meanwhile */
+.signup.is-error .signup__label { padding-right: 0; }
+.signup.is-error .mailbox { opacity: 0; }
+@media (min-width: 900px) {
+  /* 30% larger, like the rest of the email field on desktop */
+  .signup__label { padding-right: 94px; }
+  .signup.is-error .signup__label { padding-right: 0; }
+  .mailbox { right: 28px; bottom: -4px; width: 61px; height: 64px; }
+}
+
+/* ---------- reduced motion ---------- */
+@media (prefers-reduced-motion: reduce) {
+  :root { --morph: 1ms; }
+  *, *::before, *::after {
+    animation-duration: 1ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 1ms !important;
+    transition-delay: 0ms !important;
+  }
+  .seg.is-active > i { animation: none !important; transform: scaleX(1); }
+}
