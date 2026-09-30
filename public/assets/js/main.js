@@ -836,6 +836,7 @@ function splitLines(el) {
           space = false;
         }
       } else if (child.nodeType === Node.ELEMENT_NODE) {
+        if (child.tagName === 'BR') { units.push({ node: child, path, br: true, space: false }); space = false; continue; }
         if (child.childNodes.length && !child.classList.contains('inline-logo')) walk(child, [...path, child]);
         else { units.push({ node: child, path, space: space && units.length > 0 }); space = false; }
       }
@@ -866,10 +867,12 @@ function splitLines(el) {
   build(el, units);
   const lines = [];
   let lineMid = null;
+  let forceBreak = false; // a <br>: the next word starts a new line (each line is its own block, so the <br> itself goes)
   for (const u of units) {
+    if (u.br) { forceBreak = true; continue; }
     const r = u.node.getBoundingClientRect();
     const mid = r.top + r.height / 2;
-    if (lineMid === null || Math.abs(mid - lineMid) > 6) { lines.push([]); lineMid = mid; }
+    if (lineMid === null || forceBreak || Math.abs(mid - lineMid) > 6) { lines.push([]); lineMid = mid; forceBreak = false; }
     lines[lines.length - 1].push(u);
   }
   el.textContent = '';
