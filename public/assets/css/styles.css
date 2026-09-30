@@ -416,10 +416,23 @@ p, h1, h2, h3, ul, ol { margin: 0; }
 }
 .signup__submit:hover { transform: translateY(-50%) translateX(1px); }
 .signup__submit:active { transform: translateY(-50%) scale(0.94); }
-.signup.is-busy .signup__submit { opacity: 0.5; pointer-events: none; animation: pulse 1s ease-in-out infinite; }
+/* sending: the arrow button gives way to the pixel spinner, which turns 90°
+   every 0.3s in sudden jumps (steps, no easing) */
+.signup__spinner {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  display: none;
+  width: 16px;           /* 1px per pixel of the 16×16 icon: always crisp */
+  height: 16px;
+  margin: -8px 0 0 -8px;
+}
+.signup.is-busy .signup__submit { pointer-events: none; }
+.signup.is-busy .signup__submit img { visibility: hidden; }
+.signup.is-busy .signup__spinner { display: block; animation: spinner-steps 1.2s steps(4) infinite; }
+@keyframes spinner-steps { to { transform: rotate(360deg); } }
 .signup.is-success .signup__submit { opacity: 0.35; pointer-events: none; }
 
-@keyframes pulse { 50% { opacity: 0.25; } }
 
 .hp { position: absolute; left: -10000px; width: 1px; height: 1px; overflow: hidden; }
 
@@ -1128,6 +1141,7 @@ p, h1, h2, h3, ul, ol { margin: 0; }
   .signup__input { font-size: 20.8px; }
   .signup__submit { right: 12px; width: 42px; height: 42px; border-radius: 10px; }
   .signup__submit img { width: 100%; height: 100%; }
+  .signup__spinner { width: 24px; height: 24px; margin: -12px 0 0 -12px; } /* 1.5px per pixel: crisp on 2× screens */
 
   /* "See examples below" is a button on desktop (opens the cards) */
   .pull-hint.is-visible .pull-hint__btn { pointer-events: auto; cursor: pointer; }
